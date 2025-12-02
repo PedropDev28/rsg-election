@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>RSG Elections</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <!-- Root frame at native 1282×768 -->
+  <div id="election" class="frame fade-base">
+    <!-- We hide this header in CSS because your bg already has a title area -->
+    <header class="header">
+      <div class="header-left"><span class="crumb">&laquo;</span></div>
+      <div class="header-center" id="regionTitle">ELECTIONS — NEW HANOVER</div>
+    </header>
+
+     <!-- Inner panel sits EXACTLY inside the ornate inner frame -->
+    <section class="panel">
+      <div class="candidate-row">
+
+        <div id="candidate1" class="slot">
+          <img class="slot-frame" src="nui://rsg-election/html/assets/portrait1.png">
+          <div class="slot-name">Sundance Kid</div>
+          <div class="btn-area">
+            <button class="btn vote">View &amp; Vote</button>
+          </div>
+        </div>
+
+        <div id="candidate2" class="slot">
+          <img class="slot-frame" src="nui://rsg-election/html/assets/portrait2.png">
+          <div class="slot-name">Billy the Kid</div>
+          <div class="btn-area">
+            <button class="btn vote">View &amp; Vote</button>
+          </div>
+        </div>
+
+        <div id="candidate3" class="slot">
+          <img class="slot-frame" src="nui://rsg-election/html/assets/portrait3.png">
+          <div class="slot-name">Django</div>
+          <div class="btn-area">
+            <button class="btn vote">View &amp; Vote</button>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <button id="election-close" class="close-btn">×</button>
+  </div>
+
+  <!-- Modal: candidate detail -->
+  <div id="modal" class="modal hidden">
+    <div class="modal-card">
+      <button class="modal-close" id="modalClose" aria-label="Close">&times;</button>
+      <div class="modal-content">
+        <div class="modal-left">
+          <img id="modalPortrait" alt="Candidate Portrait" />
+        </div>
+        <div class="modal-right">
+          <h3 id="modalName" class="candidate-name"></h3>
+          <div id="modalBio" class="candidate-bio"></div>
+          <div class="meta">
+            <div>Region: <span id="modalRegion"></span></div>
+            <div>Status: <span id="modalStatus"></span></div>
+          </div>
+          <button id="voteBtn" class="btn vote">VOTE</button>
+          <div id="voteMsg" class="vote-msg"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

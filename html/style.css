@@ -1,0 +1,285 @@
+:root{
+  --brass:#c6a15a; --brass-dark:#7c6330;
+  --ink:#f0e8d8; --ink-dim:#d8cbb0;
+
+  /* fine-tune these four to fit your bg.png frame exactly */
+  --panel-top:    80px;
+  --panel-right:  130px;
+  --panel-bottom: 145px;
+  --panel-left:   130px;
+}
+
+@font-face {
+  font-family: 'Sancreek';
+  src: url('fonts/Sancreek-Regular.woff2') format('woff2'),
+       url('fonts/Sancreek-Regular.woff') format('woff');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'docktrin';
+  src: url('fonts/docktrin.woff2') format('woff2');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+html, body{
+  width:100%; height:100%;
+  margin:0;
+  background:transparent !important;
+  overflow:hidden;
+  font-family: "Sancreek", "Times New Roman", serif;
+  color:var(--ink);
+  display:flex;                   /* centers the canvas */
+  justify-content:center;
+  align-items:center;
+}
+
+/* fixed canvas at 1282×768, perfectly centered */
+.frame{
+  display:none;                   /* hidden until JS toggles */
+  width:1282px;
+  height:768px;
+  position:relative;              /* now centered via body flex */
+  z-index:9999;          /* make sure it’s above everything */
+  pointer-events:auto;
+  background:url("nui://rsg-election/html/assets/bg.png") 0 0 / 100% 100% no-repeat;
+  box-shadow:inset 0 0 180px rgba(0,0,0,.85);
+}
+
+/* just in case anything above is eating clicks */
+.modal,
+.panel,
+.candidate-row,
+.slot,
+.btn,
+.btn-area{
+  pointer-events:auto;
+}
+
+/* -----------------------------------------
+   SHOW HEADER + POSITION ABOVE INNER PANEL
+----------------------------------------- */
+
+/* Stop hiding the header */
+.header {
+  display: flex !important;
+  align-items: center;
+  justify-content: center;   /* center the main title */
+  
+  position: absolute;
+  top: 8.5vh;                /* adjust as needed to match your background art */
+  left: 0;
+  width: 100%;
+
+  pointer-events: none;      /* prevents blocking buttons under it */
+  z-index: 50;               /* sits above .panel */
+  background: transparent;
+}
+
+.header-left,
+.header-right {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  pointer-events: auto;      /* allows clicking on “back” if needed */
+}
+
+.header-left {
+  left: 30px;
+}
+
+.header-right {
+  right: 30px;
+}
+
+.header-center {
+  font-family: 'docktrin', serif; /* Western-style font */
+  font-size: 60px;
+  letter-spacing: 3px;
+  color: var(--ink);
+  text-shadow: 0 2px 2px rgba(0,0,0,0.5);
+  pointer-events: none;
+}
+
+/* -----------------------------------------
+   PANEL stays aligned where it was
+----------------------------------------- */
+.panel {
+  position: absolute;
+  top: var(--panel-top);
+  right: var(--panel-right);
+  bottom: var(--panel-bottom);
+  left: var(--panel-left);
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  display: flex;
+  flex-direction: column;
+  z-index: 20;  /* BELOW header */
+}
+
+/* Keep cards & grid the same */
+.grid {
+  flex: 1 1 auto;
+  overflow: auto;
+  display: grid;
+  gap: 22px;
+  grid-template-columns: repeat(3, 1fr);
+  align-items: start;
+}
+
+.card {
+  background: transparent;
+  border: none;
+  padding: 0;
+  box-shadow: none;
+  transition: transform 0.15s ease;
+}
+.card:hover {
+  transform: translateY(-2px);
+}
+.card .portrait {
+  width: 80%;
+  aspect-ratio: 3/4;
+  object-fit: cover;
+}
+.card .name {
+  margin: 8px 0 0;
+  text-align: center;
+  letter-spacing: 1px;
+  color: var(--ink);
+  text-shadow: 0 1px 0 rgba(0,0,0,.5);
+}
+.card .btn-area {
+  display: flex;
+  justify-content: center;
+  margin-top: 8px;
+}
+
+
+.btn{
+  font-family: 'Sancreek', 'Times New Roman', serif;
+  cursor:pointer; padding:8px 14px; letter-spacing:1px;
+  color:#1a0f0a; background:linear-gradient(180deg,#d2b06b,#b6893e);
+  border:1px solid #775a2a; border-radius:9px; box-shadow:0 3px 0 var(--brass-dark);
+}
+.btn:active{ transform:translateY(1px); box-shadow:0 1px 0 var(--brass-dark); }
+.btn.vote{ background:linear-gradient(180deg,#cfa055,#a8732d); }
+
+/* Modal */
+.modal {
+  position: fixed;
+  inset: 0;
+  z-index: 999999;       /* 🔥 ALWAYS ON TOP */
+  display: grid;
+  place-items: center;
+  background: rgba(0,0,0,0.65);
+}
+.modal.hidden{ display:none; }
+.modal-card{
+  width:min(980px,92vw);
+  background:linear-gradient(180deg,#4c3526,#2d1c12);
+  border:2px solid #5a4732; border-radius:14px; padding:18px 18px 14px;
+  box-shadow:0 18px 50px rgba(0,0,0,.75);
+  animation:pop .18s ease-out;
+  z-index: 1000000;      /* 🔥 higher than modal backdrop */
+}
+@keyframes pop{ from{transform:scale(.98);opacity:0} to{transform:scale(1);opacity:1} }
+.modal-close{ position:absolute; top:8px; right:10px; font-size:24px; color:var(--ink-dim); background:transparent; border:none; cursor:pointer; }
+.modal-content{ display:grid; grid-template-columns:360px 1fr; gap:18px; }
+.modal-left img{
+  width:100%; aspect-ratio:3/4; object-fit:cover;
+  border:8px solid #6b4225; border-bottom-width:14px; border-radius:8px; background:#1a0f0a;
+}
+.candidate-name{ margin:4px 0 8px; letter-spacing:1px; }
+.candidate-bio{ white-space:pre-wrap; color:var(--ink-dim); }
+.meta{ margin:10px 0 14px; color:var(--ink-dim); }
+.vote-msg{ margin-top:8px; color:#9ad18b; }
+
+/* Fade hooks */
+.fade-base{ opacity:0; transform:translateY(12px); transition:opacity .16s ease, transform .16s ease; }
+.fade-in  { display:block !important; opacity:1; transform:translateY(0); }
+.fade-out { opacity:0; transform:translateY(12px); }
+
+/* ensure everything sits above bg */
+.frame>*{ position:relative; z-index:1; }
+
+/* scrollbars inside panel */
+.panel .grid{ scrollbar-width:thin; scrollbar-color:rgba(255,255,255,.25) transparent; }
+.panel .grid::-webkit-scrollbar{ width:10px; }
+.panel .grid::-webkit-scrollbar-thumb{ background:rgba(255,255,255,.25); border-radius:6px; }
+
+/* ----- 3 frames row INSIDE the silver inner frame ----- */
+.candidate-row{
+  position:absolute;
+
+  /* These four numbers place the whole block
+     inside the brown area of the silver frame. Tweak if needed. 
+
+  top:10%; */
+  left:11%;
+  width:55%;
+  height:100%;
+  margin-top: 8%;
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+}
+
+/* each candidate slot */
+.slot{
+  width:30%;                    /* shrink/enlarge frames horizontally */
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+}
+
+/* picture frame image */
+.slot-frame{
+  width:100%;
+  height:auto;
+  display:block;
+}
+
+/* name below */
+.slot-name{
+  margin-top:-43px;
+  font-size:20px;
+  font-weight:auto;
+  color:var(--ink);
+  text-align:center;
+  letter-spacing:2px;
+}
+
+/* button area reused from your CSS */
+.slot .btn-area{
+  display:flex;
+  justify-content:center;
+  margin-top:28px;
+}
+
+.close-btn{
+  position:absolute;
+  top:18px;
+  right:26px;
+  width:32px;
+  height:32px;
+  border:none;
+  border-radius:50%;
+  background:rgba(0,0,0,.6);
+  color:var(--ink);
+  font-size:22px;
+  line-height:32px;
+  text-align:center;
+  cursor:pointer;
+  z-index:10000;
+}
+.close-btn:hover{
+  background:rgba(0,0,0,.85);
+}
