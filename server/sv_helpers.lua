@@ -157,19 +157,28 @@ end
 -- Region helpers
 -- ---------------------
 
---- Get player's region hash (hex string) via rsg-governor callback
---- This mirrors the old getPlayerRegionHash behavior.
+--- Determine player's region hash based on approved residency
 ---@param src number
 ---@return string|nil regionHashHex
+-- sv_helpers.lua (inside rsg-election)
+
 function RSGElection.GetPlayerRegionHash(src)
-    local ok, hash = pcall(function()
-        return lib.callback.await('rsg-governor:getRegionHash', src)
+    local ok, region = pcall(function()
+        return exports['rsg-residency']:GetPlayerRegion(src)
     end)
-    if not ok or not hash then
-        debug('Failed to get region hash for %s: %s', tostring(src), tostring(hash))
+
+    if not ok or not region then
+        RSGElection.Debug('GetPlayerRegionHash: no region for src %s (err=%s)', tostring(src), tostring(region))
         return nil
     end
-    return string.format("0x%08X", hash)
+
+    local hash = region.hash or region.region_hash
+    if not hash or hash == '' then
+        RSGElection.Debug('GetPlayerRegionHash: region object missing hash for src %s', tostring(src))
+        return nil
+    end
+
+    return tostring(hash)
 end
 
 --- Lookup latest election row for a region hash
