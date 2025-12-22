@@ -26,11 +26,12 @@ server_scripts {
 }
 
 client_scripts {
-    'client/cl_main.lua',
+    --'client/cl_main.lua',
     --'client/cl_ui.lua',
     'client/cl_admin.lua',
     'client/cl_candidacy.lua',
-    'client/cl_election.lua'
+    'client/cl_election.lua',
+    'client/cl_world.lua'
 }
 
 ui_page 'html/index.html'
