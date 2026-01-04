@@ -1,4 +1,5 @@
 -- cl_election.lua — toggle NUI + talk to server
+lib.locale()
 
 local showing = false
 
@@ -25,8 +26,8 @@ RegisterCommand('election', function()
     lib.callback('rsg-election:canOpenElection', false, function(canOpen, info, regionAlias)
         if not canOpen then
             lib.notify({
-                title       = "Elections",
-                description = info or "No active election in this region.",
+                title       = locale('elections') or "Elections",
+                description = info or locale('no_active_election') or "No active election in this region.",
                 type        = "error"
             })
             return

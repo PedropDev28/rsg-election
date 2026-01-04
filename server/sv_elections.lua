@@ -6,7 +6,7 @@
 local RSGCore      = exports['rsg-core']:GetCoreObject()
 RSGElection        = RSGElection or {}
 RSGElection.Enums  = RSGElection.Enums or {}
-
+lib.locale()
 -- Shortcuts to shared helpers (defined in sv_helpers.lua / sv_elections.lua)
 local Notify      = RSGElection.Notify
 local Audit       = RSGElection.Audit
@@ -34,7 +34,7 @@ RegisterNetEvent("rsg-election:castVote", function(candidateId)
 
     candidateId = tonumber(candidateId)
     if not candidateId or candidateId <= 0 then
-        Notify(src, "Voting", "Invalid candidate.", "error")
+        Notify(src, locale('voting') or "Voting", locale('invalid_candidate') or "Invalid candidate.", "error")
         return
     end
 
@@ -43,13 +43,13 @@ RegisterNetEvent("rsg-election:castVote", function(candidateId)
 
     local region_hash = GetRegion(src)
     if not region_hash then
-        Notify(src, "Voting", "Could not determine your region.", "error")
+        Notify(src, locale('voting') or "Voting", locale('cannot_determine_region') or "Could not determine your region.", "error")
         return
     end
 
     local elec = GetActive(region_hash)
     if not elec or tostring(elec.phase or ''):lower() ~= 'voting' then
-        Notify(src, "Voting", "Voting is not active.", "error")
+        Notify(src, locale('voting') or "Voting", locale('voting_not_active') or "Voting is not active.", "error")
         return
     end
 
@@ -62,12 +62,12 @@ RegisterNetEvent("rsg-election:castVote", function(candidateId)
     )
 
     if not residency then
-        Notify(src, "Voting", "You must be a registered resident to vote.", "error")
+        Notify(src, locale('voting') or "Voting", locale('must_be_resident_vote') or "You must be a registered resident to vote.", "error")
         return
     end
 
     if residency.region_hash ~= region_hash then
-        Notify(src, "Voting", "You can only vote in your home region.", "error")
+        Notify(src, locale('voting') or "Voting", locale('must_be_resident_region') or "You can only vote in your home region.", "error")
         return
     end
 
@@ -79,7 +79,7 @@ RegisterNetEvent("rsg-election:castVote", function(candidateId)
     ]], { candidateId, elec.id })
 
     if not cand then
-        Notify(src, "Voting", "Invalid candidate.", "error")
+        Notify(src, locale('voting') or "Voting", locale('invalid_candidate') or "Invalid candidate.", "error")
         return
     end
 
@@ -90,7 +90,7 @@ RegisterNetEvent("rsg-election:castVote", function(candidateId)
     ]], { elec.id, citizenid })
 
     if already then
-        Notify(src, "Voting", "You already voted.", "error")
+        Notify(src, locale('voting') or "Voting", locale('already_voted') or "You already voted.", "error")
         return
     end
 
@@ -106,7 +106,7 @@ RegisterNetEvent("rsg-election:castVote", function(candidateId)
         )
     end
 
-    Notify(src, "Voting", "Your vote has been cast.", "success")
+    Notify(src, locale('voting') or "Voting", locale('vote_cast') or "Your vote has been cast.", "success")
 
     -- Let client update UI state
     TriggerClientEvent("rsg-election:voted", src)
@@ -130,7 +130,7 @@ RegisterNetEvent("rsg-election:requestElectionData", function()
     local elec = GetActive(region_hash)
     if not elec then
         TriggerClientEvent("rsg-election:sendElectionData", src, {
-            regionTitle = "No active election",
+            regionTitle = locale('no_active_election') or "No active election",
             phase       = PHASE_LABELS.idle,
             hasVoted    = false,
             candidates  = {}
@@ -169,7 +169,7 @@ RegisterNetEvent("rsg-election:requestElectionData", function()
         }
     end
 
-    local title = ("ELECTIONS — %s"):format(string.upper(elec.region_alias))
+    local title = (locale('elections') or "ELECTIONS") .. " — " .. string.upper(elec.region_alias)
 
     TriggerClientEvent("rsg-election:sendElectionData", src, {
         regionTitle = title,
@@ -197,12 +197,12 @@ end)
 lib.callback.register('rsg-election:canOpenElection', function(src)
     local region_hash = GetRegion(src)
     if not region_hash then
-        return false, "Unable to determine your region."
+        return false, locale('cannot_determine_region') or "Unable to determine your region."
     end
 
     local elec = GetActive(region_hash)
     if not elec or elec.phase == 'idle' or elec.phase == 'complete' then
-        return false, "No active election in this region."
+        return false, locale('no_active_election') or "No active election in this region."
     end
 
     return true, PHASE_LABELS[elec.phase] or elec.phase, elec.region_alias

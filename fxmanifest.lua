@@ -14,6 +14,23 @@ shared_scripts {
     --'shared/sh_election.lua',
 }
 
+files {
+    'locales/*.json',
+    'html/index.html',
+    'html/style.css',
+    'html/script.js',
+    'html/fonts/*.woff',
+    'html/fonts/*.woff2',
+    'html/assets/*.png',
+    'html/assets/*.jpg',
+    'html/assets/*.webp',
+    'html/assets/*.ttf'
+}
+
+ox_lib {
+    'locale'
+}
+
 server_scripts {
     '@oxmysql/lib/MySQL.lua',
     'server/sv_helpers.lua',     -- defines RSGElection + helpers first
@@ -35,15 +52,3 @@ client_scripts {
 }
 
 ui_page 'html/index.html'
-
-files {
-    'html/index.html',
-    'html/style.css',
-    'html/script.js',
-    'html/fonts/*.woff',
-    'html/fonts/*.woff2',
-    'html/assets/*.png',
-    'html/assets/*.jpg',
-    'html/assets/*.webp',
-    'html/assets/*.ttf'
-}

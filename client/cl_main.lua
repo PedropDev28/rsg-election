@@ -1,3 +1,4 @@
+lib.locale()
 local RSGCore = exports['rsg-core']:GetCoreObject()
 local ActiveElectionPeds = {}      -- [regionKey] = ped entity
 local BulletinBoardTargets = {}    -- [key] = zone/target id if your target API returns one
@@ -19,7 +20,7 @@ local function AddTargetToEntity(entity, opts)
             options = {
                 {
                     icon  = opts.icon or 'fa-solid fa-circle-info',
-                    label = opts.label or 'Interact',
+                    label = opts.label or locale('interact') or 'Interact',
                     action = opts.onSelect,
                 }
             },
@@ -41,7 +42,7 @@ local function AddTargetForCoords(key, coords, opts)
             options  = {
                 {
                     icon   = opts.icon or 'fa-solid fa-circle-info',
-                    label  = opts.label or 'Interact',
+                    label  = opts.label or locale('interact') or 'Interact',
                     onSelect = opts.onSelect,
                 }
             }
@@ -56,7 +57,7 @@ local function AddTargetForCoords(key, coords, opts)
             options = {
                 {
                     icon  = opts.icon or 'fa-solid fa-circle-info',
-                    label = opts.label or 'Interact',
+                    label = opts.label or locale('interact') or 'Interact',
                     action = opts.onSelect,
                 }
             },
@@ -98,7 +99,7 @@ RegisterNetEvent('rsg-election:client:onCandidatePedSpawned', function(regionKey
 
     AddTargetToEntity(ped, {
         icon    = cfg and cfg.targetIcon or 'fa-solid fa-scale-balanced',
-        label   = cfg and cfg.targetLabel or 'Register as Candidate',
+        label   = cfg and cfg.targetLabel or locale('register_as_candidate') or 'Register as Candidate',
         distance= cfg and cfg.targetDistance or 2.0,
         onSelect = function()
             -- Trigger your existing registration flow here
@@ -131,7 +132,7 @@ CreateThread(function()
             radius   = 1.5,
             distance = data.targetDistance or 2.0,
             icon     = data.targetIcon or 'fa-solid fa-clipboard-list',
-            label    = data.targetLabel or 'Open Election Board',
+            label    = data.targetLabel or locale('open_election_board') or 'Open Election Board',
             onSelect = function()
                 -- When player interacts, ask the server about the board's state
                 local result = lib.callback.await('rsg-election:getBulletinData', false, data.regionKey)
@@ -160,7 +161,7 @@ CreateThread(function()
                     SetNuiFocus(true, true)
                     SendNUIMessage({
                         action  = 'election:openInfo',
-                        message = 'No election is currently running in this region.',
+                        message = locale('no_active_election') or 'No election is currently running in this region.',
                     })
                 end
             end

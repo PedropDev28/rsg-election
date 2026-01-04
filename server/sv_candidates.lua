@@ -6,7 +6,7 @@
 local RSGCore     = exports['rsg-core']:GetCoreObject()
 RSGElection       = RSGElection or {}
 RSGElection.Enums = RSGElection.Enums or {}
-
+lib.locale()
 local Notify    = RSGElection.Notify
 local Audit     = RSGElection.Audit
 local GetRegion = RSGElection.GetPlayerRegionHash
@@ -21,7 +21,7 @@ local MAX_CANDIDATES = RSGElection.MAX_CANDIDATES or 3
 local function getCharNameFromPlayer(Player)
     if not Player then return 'Unknown' end
     local charinfo = Player.PlayerData.charinfo or {}
-    local first    = charinfo.firstname or 'Unknown'
+    local first    = charinfo.firstname or locale('unknown') or 'Unknown'
     local last     = charinfo.lastname or ''
     return (first .. ' ' .. last):gsub('%s+$', '')
 end
@@ -96,8 +96,8 @@ RegisterNetEvent("rsg-election:candidacy:submit", function(data)
     -- 🔒 Block lawman / medic (or any blocked job) from running
     local blocked, jobName = IsJobBlockedForGovernor(Player)
     if blocked then
-        Notify(src, "Candidacy",
-            ("You must resign from your %s job before running for governor."):format(jobName),
+        Notify(src, locale('candidacy') or "Candidacy",
+            locale('must_resign_job', jobName) or ("You must resign from your %s job before running for governor."):format(jobName),
             "error"
         )
         return
@@ -110,13 +110,13 @@ RegisterNetEvent("rsg-election:candidacy:submit", function(data)
 
     local region_hash = GetRegion(src)       -- should already be HEX like "0x41332496"
     if not region_hash then
-        Notify(src, "Candidacy", "Cannot determine your region.", "error")
+        Notify(src, locale('candidacy') or "Candidacy", locale('cannot_determine_region') or "Cannot determine your region.", "error")
         return
     end
 
     local elec = GetActive(region_hash)
     if not elec or elec.phase ~= 'registration' then
-        Notify(src, "Candidacy", "No active registration in this region.", "error")
+        Notify(src, locale('candidacy') or "Candidacy", locale('no_active_registration') or "No active registration in this region.", "error")
         return
     end
 
@@ -129,7 +129,7 @@ RegisterNetEvent("rsg-election:candidacy:submit", function(data)
     )
 
     if not res then
-        Notify(src, "Candidacy", "You are not an approved resident of any region.", "error")
+        Notify(src, locale('candidacy') or "Candidacy", locale('not_approved_resident') or "You are not an approved resident of any region.", "error")
         return
     end
 
@@ -137,13 +137,13 @@ RegisterNetEvent("rsg-election:candidacy:submit", function(data)
     local elecHash = tostring(elec.region_hash or ''):lower()
 
     if resHash == '' or elecHash == '' or resHash ~= elecHash then
-        Notify(src, "Candidacy", "You must be a resident of this region to apply.", "error")
+        Notify(src, locale('candidacy') or "Candidacy", locale('must_be_resident') or "You must be a resident of this region to apply.", "error")
         return
     end
 
     -- Additional check: residency document item as proof
     if not HasResidencyDocument(Player, elec.region_hash) then
-        Notify(src, "Candidacy", "You must carry your residency document to apply as a candidate.", "error")
+        Notify(src, locale('candidacy') or "Candidacy", locale('must_carry_residency_document') or "You must carry your residency document to apply as a candidate.", "error")
         return
     end
 
@@ -153,7 +153,7 @@ RegisterNetEvent("rsg-election:candidacy:submit", function(data)
         WHERE election_id = ? AND citizenid = ?
     ]], { elec.id, citizenid })
     if existing then
-        Notify(src, "Candidacy", "You have already applied for this election.", "error")
+        Notify(src, locale('candidacy') or "Candidacy", locale('already_applied') or "You have already applied for this election.", "error")
         return
     end
 
@@ -174,10 +174,10 @@ RegisterNetEvent("rsg-election:candidacy:submit", function(data)
     })
 
     Audit(citizenid, "apply_candidacy",
-        ("Applied as candidate in election %d (%s)"):format(elec.id, elec.region_alias)
+        (locale('applied_as_candidate') or "Applied as candidate in election %d (%s)"):format(elec.id, elec.region_alias)
     )
 
-    Notify(src, "Candidacy", "Your application has been submitted for review.", "success")
+    Notify(src, locale('candidacy') or "Candidacy", locale('application_submitted') or "Your application has been submitted for review.", "success")
 end)
 
 -- ---------------------------------------------------------------------
@@ -186,19 +186,19 @@ end)
 -- ---------------------------------------------------------------------
 local function openPendingCandidaciesMenuFor(src)
     if not IsOwner(src) then
-        Notify(src, "Candidacy", "Only the server owner may review candidates.", "error")
+        Notify(src, locale('candidacy') or "Candidacy", locale('only_owner_review') or "Only the server owner may review candidates.", "error")
         return
     end
 
     local region_hash = GetRegion(src)
     if not region_hash then
-        Notify(src, "Candidacy", "Cannot determine your region.", "error")
+        Notify(src, locale('candidacy') or "Candidacy", locale('cannot_determine_region') or "Cannot determine your region.", "error")
         return
     end
 
     local elec = GetActive(region_hash)
     if not elec then
-        Notify(src, "Candidacy", "No active election in this region.", "error")
+        Notify(src, locale('candidacy') or "Candidacy", locale('no_active_election') or "No active election in this region.", "error")
         return
     end
 
@@ -208,7 +208,7 @@ local function openPendingCandidaciesMenuFor(src)
     ]], { elec.id })
 
     if not apps or #apps == 0 then
-        Notify(src, "Candidacy", "No pending applications.", "inform")
+        Notify(src, locale('candidacy') or "Candidacy", locale('no_pending_applications') or "No pending applications.", "inform")
         return
     end
 
@@ -230,7 +230,7 @@ end
 -- /reviewapps – OWNER ONLY
 -- Opens the pending candidacy list (ox_lib context menu on client)
 -- ---------------------------------------------------------------------
-RSGCore.Commands.Add('reviewapps', 'Review pending candidate applications', {}, false, function(source, _)
+RSGCore.Commands.Add('reviewapps', locale('review_pending_applications') or 'Review pending candidate applications', {}, false, function(source, _)
     openPendingCandidaciesMenuFor(source)
 end, 'god')
 
@@ -266,7 +266,7 @@ RegisterNetEvent("rsg-election:approveCandidacy", function(appId)
     ]], { app.election_id }) or 0
 
     if approvedCount >= MAX_CANDIDATES then
-        Notify(src, "Candidacy", ("Maximum %d candidates already approved."):format(MAX_CANDIDATES), "error")
+        Notify(src, locale('candidacy') or "Candidacy", (locale('maximum_candidates_approved') or "Maximum %d candidates already approved."):format(MAX_CANDIDATES), "error")
         return
     end
 
@@ -276,11 +276,11 @@ RegisterNetEvent("rsg-election:approveCandidacy", function(appId)
     local actorCid = Player and Player.PlayerData.citizenid or ('src:' .. src)
 
     Audit(actorCid, "approve_candidate",
-        ("Approved candidacy %d (%s)"):format(appId, app.character_name)
+        (locale('approved_candidacy') or "Approved candidacy %d (%s)"):format(appId, app.character_name)
     )
 
-    Notify(src, "Candidacy",
-        ("Approved %s as candidate."):format(app.character_name),
+    Notify(src, locale('candidacy') or "Candidacy",
+        (locale('approved_as_candidate') or "Approved %s as candidate."):format(app.character_name),
         "success"
     )
 
@@ -288,8 +288,8 @@ RegisterNetEvent("rsg-election:approveCandidacy", function(appId)
     if RSGCore.Functions.GetPlayerByCitizenId then
         local target = RSGCore.Functions.GetPlayerByCitizenId(app.citizenid)
         if target then
-            Notify(target.PlayerData.source, "Candidacy",
-                "Your candidacy has been APPROVED.", "success")
+            Notify(target.PlayerData.source, locale('candidacy') or "Candidacy",
+                locale('your_candidacy_approved') or "Your candidacy has been APPROVED.", "success")
         end
     end
 
@@ -315,11 +315,11 @@ RegisterNetEvent("rsg-election:rejectCandidacy", function(appId)
     local actorCid = Player and Player.PlayerData.citizenid or ('src:' .. src)
 
     Audit(actorCid, "reject_candidate",
-        ("Rejected candidacy %d (%s)"):format(appId, app.character_name)
+        (locale('rejected_candidacy') or "Rejected candidacy %d (%s)"):format(appId, app.character_name)
     )
 
-    Notify(src, "Candidacy",
-        ("Rejected %s's candidacy."):format(app.character_name),
+    Notify(src, locale('candidacy') or "Candidacy",
+        (locale('rejected_candidacy_notify') or "Rejected %s's candidacy."):format(app.character_name),
         "error"
     )
 
@@ -327,8 +327,8 @@ RegisterNetEvent("rsg-election:rejectCandidacy", function(appId)
     if RSGCore.Functions.GetPlayerByCitizenId then
         local target = RSGCore.Functions.GetPlayerByCitizenId(app.citizenid)
         if target then
-            Notify(target.PlayerData.source, "Candidacy",
-                "Your candidacy has been REJECTED.", "error")
+            Notify(target.PlayerData.source, locale('candidacy') or "Candidacy",
+                locale('your_candidacy_rejected') or "Your candidacy has been REJECTED.", "error")
         end
     end
 
@@ -341,7 +341,7 @@ end)
 -- Opens the candidacy application form (client)
 -- ============================================================
 
-RSGCore.Commands.Add('applycandidate', 'Apply as a candidate in the active election.', {}, false, function(source, args)
+RSGCore.Commands.Add('applycandidate', locale('apply_as_candidate') or 'Apply as a candidate in the active election.', {}, false, function(source, args)
     local src    = source
     local Player = RSGCore.Functions.GetPlayer(src)
     if not Player then return end
@@ -349,8 +349,8 @@ RSGCore.Commands.Add('applycandidate', 'Apply as a candidate in the active elect
     -- 🔒 Block lawman / medic from running
     local blocked, jobName = IsJobBlockedForGovernor(Player)
     if blocked then
-        RSGElection.Notify(src, "Candidacy",
-            ("You must resign from your %s job before running for governor."):format(jobName),
+        RSGElection.Notify(src, locale('candidacy') or "Candidacy",
+            (locale('must_resign_job') or "You must resign from your %s job before running for governor."):format(jobName),
             "error"
         )
         return
@@ -359,20 +359,20 @@ RSGCore.Commands.Add('applycandidate', 'Apply as a candidate in the active elect
     -- Get player's region hash (HEX)
     local region_hash = RSGElection.GetPlayerRegionHash(src)
     if not region_hash then
-        RSGElection.Notify(src, "Candidacy", "Could not determine your region.", "error")
+        RSGElection.Notify(src, locale('candidacy') or "Candidacy", locale('could_not_determine_region') or "Could not determine your region.", "error")
         return
     end
 
     -- Get active election in that region
     local elec = RSGElection.GetActiveElectionByRegion(region_hash)
     if not elec then
-        RSGElection.Notify(src, "Candidacy", "No election found for your region.", "error")
+        RSGElection.Notify(src, locale('candidacy') or "Candidacy", locale('no_election_found') or "No election found for your region.", "error")
         return
     end
 
     -- Must be in registration phase
     if tostring(elec.phase or ''):lower() ~= 'registration' then
-        RSGElection.Notify(src, "Candidacy", "You can only apply during Registration phase.", "error")
+        RSGElection.Notify(src, locale('candidacy') or "Candidacy", locale('registration_phase_only') or "You can only apply during Registration phase.", "error")
         return
     end
 

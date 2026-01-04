@@ -2,7 +2,7 @@
 -- rsg-election / client/cl_admin.lua
 -- Admin election menu using ox_lib context menus
 --======================================================================
-
+lib.locale()
 local function getRegionOptions()
     local opts = {}
 
@@ -40,24 +40,24 @@ local function openSetupElectionDialog()
     local regionOptions = getRegionOptions()
     if #regionOptions == 0 then
         lib.notify({
-            title       = 'Elections',
-            description = 'No regions configured for elections.',
+            title       = locale('elections') or 'Elections',
+            description = locale('no_regions_configured') or 'No regions configured for elections.',
             type        = 'error'
         })
         return
     end
 
-    local input = lib.inputDialog('Setup Election', {
+    local input = lib.inputDialog(locale('setup_election') or 'Setup Election', {
         {
             type     = 'select',
-            label    = 'Region',
+            label    = locale('region') or 'Region',
             options  = regionOptions,
             required = true,
             default  = regionOptions[1].value,
         },
         {
             type    = 'number',
-            label   = 'Registration Fee',
+            label   = locale('registration_fee') or 'Registration Fee',
             default = 0,
             min     = 0,
         }
@@ -75,9 +75,9 @@ end
 local function openElectionAdminMenu()
     lib.callback('rsg-election:getAdminElectionList', false, function(response)
         if not response or not response.ok then
-            local msg = (response and response.error) or 'Failed to load elections.'
+            local msg = (response and response.error) or locale('failed_to_load_elections') or 'Failed to load elections.'
             lib.notify({
-                title       = 'Elections',
+                title       = locale('elections') or 'Elections',
                 description = msg,
                 type        = 'error'
             })
@@ -89,39 +89,39 @@ local function openElectionAdminMenu()
 
         -- Setup new election option at the top
         options[#options+1] = {
-            title       = "Setup new election",
-            description = "Create a new election (region, phase, registration fee).",
+            title       = locale('setup_new_election') or "Setup new election",
+            description = locale('setup_new_election_desc') or "Create a new election (region, phase, registration fee).",
             event       = 'rsg-election:client:OpenSetupElection',
             arrow       = true,
         }
 
         if #elections == 0 then
             options[#options+1] = {
-                title       = "No existing elections.",
-                description = "Use 'Setup new election' to create one.",
+                title       = locale('no_existing_elections') or "No existing elections.",
+                description = locale('use_setup_new_election') or "Use 'Setup new election' to create one.",
                 disabled    = true,
             }
         else
             for _, elec in ipairs(elections) do
-                local title = string.format("#%d — %s", elec.id, string.upper(elec.region_alias or 'UNKNOWN'))
+                local title = string.format("#%d — %s", elec.id, string.upper(elec.region_alias or locale('unknown') or 'UNKNOWN'))
                 local descLines = {}
 
-                table.insert(descLines, string.format("Phase: %s", elec.phase_label or elec.phase or 'unknown'))
+                table.insert(descLines, string.format(locale('phase_label') or "Phase: %s", elec.phase_label or elec.phase or locale('unknown') or 'unknown'))
 
                 if elec.total_votes and elec.total_votes > 0 then
-                    table.insert(descLines, string.format("Total votes: %d", elec.total_votes))
+                    table.insert(descLines, string.format(locale('total_votes') or "Total votes: %d", elec.total_votes))
                 else
-                    table.insert(descLines, "Total votes: 0")
+                    table.insert(descLines, locale('total_votes_zero') or "Total votes: 0")
                 end
 
                 if elec.reg_start then
-                    table.insert(descLines, "Reg start: " .. tostring(elec.reg_start))
+                    table.insert(descLines, locale('reg_start') .. ": " .. tostring(elec.reg_start))
                 end
                 if elec.vote_start then
-                    table.insert(descLines, "Vote start: " .. tostring(elec.vote_start))
+                    table.insert(descLines, locale('vote_start') .. ": " .. tostring(elec.vote_start))
                 end
                 if elec.vote_end then
-                    table.insert(descLines, "Vote end: " .. tostring(elec.vote_end))
+                    table.insert(descLines, locale('vote_end') .. ": " .. tostring(elec.vote_end))
                 end
 
                 options[#options+1] = {
@@ -136,7 +136,7 @@ local function openElectionAdminMenu()
 
         lib.registerContext({
             id      = 'rsg-election-admin-list',
-            title   = 'Election Admin Menu',
+            title   = locale('election_admin_menu') or 'Election Admin Menu',
             options = options
         })
 
@@ -158,9 +158,9 @@ RegisterNetEvent('rsg-election:client:OpenElectionAdminDetail', function(electio
 
     lib.callback('rsg-election:getElectionAdminDetail', false, function(response)
         if not response or not response.ok or not response.election then
-            local msg = (response and response.error) or 'Election not found.'
+            local msg = (response and response.error) or locale('election_not_found') or 'Election not found.'
             lib.notify({
-                title       = 'Elections',
+                title       = locale('elections') or 'Elections',
                 description = msg,
                 type        = 'error'
             })
@@ -174,27 +174,27 @@ RegisterNetEvent('rsg-election:client:OpenElectionAdminDetail', function(electio
 
         -- Summary header (non-interactive)
         options[#options+1] = {
-            title       = string.format("Phase: %s", elec.phase_label or elec.phase or 'unknown'),
+            title       = string.format(locale('phase_label') or "Phase: %s", elec.phase_label or elec.phase or locale('unknown') or 'unknown'),
             description = string.format(
-                "Region: %s\nReg start: %s\nVote start: %s\nVote end: %s",
-                string.upper(elec.region_alias or 'UNKNOWN'),
-                elec.reg_start or 'N/A',
-                elec.vote_start or 'N/A',
-                elec.vote_end or 'N/A'
+                locale('region_label') .. ": %s\n" .. locale('reg_start') .. ": %s\n" .. locale('vote_start') .. ": %s\n" .. locale('vote_end') .. ": %s",
+                string.upper(elec.region_alias or locale('unknown') or 'UNKNOWN'),
+                elec.reg_start or locale('not_available') or 'N/A',
+                elec.vote_start or locale('not_available') or 'N/A',
+                elec.vote_end or locale('not_available') or 'N/A'
             ),
             disabled    = true,
         }
 
         if #tally == 0 then
             options[#options+1] = {
-                title    = "No candidates / votes yet.",
+                title    = locale('no_candidates_votes') or "No candidates / votes yet.",
                 disabled = true
             }
         else
             for _, row in ipairs(tally) do
                 options[#options+1] = {
-                    title       = string.format("%s — %d votes", row.character_name or ('Candidate #' .. row.candidate_id), row.votes or 0),
-                    description = ("CitizenID: %s"):format(row.citizenid or 'unknown'),
+                title       = string.format( locale('candidate_votes') or "%s — %d votes", row.character_name or (locale('candidate') .. ' #' .. row.candidate_id), row.votes or 0),
+                description = (locale('citizen_id') or "CitizenID: %s"):format(row.citizenid or locale('unknown') or 'unknown'),
                     disabled    = true,
                 }
             end
@@ -204,31 +204,31 @@ RegisterNetEvent('rsg-election:client:OpenElectionAdminDetail', function(electio
 
         -- Phase change options
         options[#options+1] = {
-            title = "Set phase: Registration",
+            title = locale('set_phase_registration') or "Set phase: Registration",
             event = 'rsg-election:client:AdminSetPhase',
             args  = { id = id, phase = 'registration' },
         }
         options[#options+1] = {
-            title = "Set phase: Campaign",
+            title = locale('set_phase_campaign') or "Set phase: Campaign",
             event = 'rsg-election:client:AdminSetPhase',
             args  = { id = id, phase = 'campaign' },
         }
         options[#options+1] = {
-            title = "Set phase: Voting",
+            title = locale('set_phase_voting') or "Set phase: Voting",
             event = 'rsg-election:client:AdminSetPhase',
             args  = { id = id, phase = 'voting' },
         }
         options[#options+1] = {
-            title       = "Set phase: Result",
-            description = "Marks election as complete (Result).",
+            title       = locale('set_phase_result') or "Set phase: Result",
+            description = locale('set_phase_result_desc') or "Marks election as complete (Result).",
             event       = 'rsg-election:client:AdminSetPhase',
             args        = { id = id, phase = 'complete' },
         }
 
         if elec.phase == 'complete' and #tally > 0 then
             options[#options+1] = {
-                title       = "Apply result (install governor + announce)",
-                description = "Requires phase: Result.",
+                title       = locale('apply_result') or "Apply result (install governor + announce)",
+                description = locale('apply_result_desc') or "Requires phase: Result.",
                 event       = 'rsg-election:client:AdminApplyResult',
                 args        = id,
             }
@@ -236,7 +236,7 @@ RegisterNetEvent('rsg-election:client:OpenElectionAdminDetail', function(electio
 
         lib.registerContext({
             id      = 'rsg-election-admin-detail-' .. id,
-            title   = string.format("Election #%d — %s", id, string.upper(elec.region_alias or 'UNKNOWN')),
+            title   = string.format(locale('election_title') or "Election #%d — %s", id, string.upper(elec.region_alias or locale('unknown') or 'UNKNOWN')),
             menu    = 'rsg-election-admin-list',
             options = options
         })
@@ -260,34 +260,34 @@ RegisterNetEvent('rsg-election:client:AdminSetPhase', function(data)
 
     -- Phases that require a duration
     if phase == 'registration' or phase == 'campaign' or phase == 'voting' then
-        local title = 'Set ' .. (phase:gsub("^%l", string.upper)) .. ' Duration'
+        local title = locale(set) or 'Set ' .. (phase:gsub("^%l", string.upper)) .. locale('duration') or ' Duration'
 
         local input = lib.inputDialog(title, {
             {
                 type     = 'number',
-                label    = 'Duration (months)',
+                label    = locale('duration_months') or 'Duration (months)',
                 default  = 1,
                 min      = 1,
                 required = true,
             },
             {
                 type     = 'select',
-                label    = 'Month type',
+                label    = locale('month_type') or 'Month type',
                 options  = {
-                    { label = 'In-game months',   value = 'ingame'   },
-                    { label = 'Real-time months', value = 'realtime' },
+                    { label = locale('in_game_months') or 'In-game months',   value = 'ingame'   },
+                    { label = locale('real_time_months') or 'Real-time months', value = 'realtime' },
                 },
                 default  = 'ingame',
                 required = true,
             },
             {
                 type     = 'select',
-                label    = 'Send announcement to residents?',
+                label    = locale('send_announcement') or 'Send announcement to residents?',
                 options  = {
-                    { label = 'Yes', value = 'yes' },
-                    { label = 'No',  value = 'no'  },
+                    { label = locale('yes') or 'Yes', value = 'yes' },
+                    { label = locale('no') or 'No',  value = 'no'  },
                 },
-                default  = 'yes',
+                default  = locale('yes') or 'yes',
                 required = true,
             }
         })
@@ -300,8 +300,8 @@ RegisterNetEvent('rsg-election:client:AdminSetPhase', function(data)
 
         if months <= 0 then
             lib.notify({
-                title       = 'Elections',
-                description = 'Months must be greater than 0.',
+                title       = locale('elections') or 'Elections',
+                description = locale('months_must_be_greater_than_0') or 'Months must be greater than 0.',
                 type        = 'error'
             })
             return
@@ -316,13 +316,13 @@ RegisterNetEvent('rsg-election:client:AdminSetPhase', function(data)
 
     -- Result phase (complete) – ask only for announce flag
     if phase == 'complete' then
-        local input = lib.inputDialog('Set Result Phase', {
+        local input = lib.inputDialog(locale('set_result_phase') or 'Set Result Phase', {
             {
                 type     = 'select',
-                label    = 'Announce result to residents?',
+                label    = locale('announce_result') or 'Announce result to residents?',
                 options  = {
-                    { label = 'Yes', value = 'yes' },
-                    { label = 'No',  value = 'no'  },
+                    { label = locale('yes') or 'Yes', value = 'yes' },
+                    { label = locale('no') or 'No',  value = 'no'  },
                 },
                 default  = 'yes',
                 required = true,
@@ -331,7 +331,7 @@ RegisterNetEvent('rsg-election:client:AdminSetPhase', function(data)
 
         if not input then return end
 
-        local announce = tostring(input[1] or 'yes') == 'yes'
+        local announce = tostring(input[1] or locale('yes') or 'yes') == 'yes'
         local igDate   = getInGameDate()
 
         TriggerServerEvent('rsg-election:adminSetPhase', data.id, phase, 0, nil, igDate, announce)

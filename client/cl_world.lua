@@ -1,5 +1,5 @@
 local RSGCore = exports['rsg-core']:GetCoreObject()
-
+lib.locale()
 local ActiveElectionPeds   = {}   -- [regionHash] = ped entity
 local BulletinBoardTargets = {}   -- [key] = target id / true
 local SpawnedCandidatePeds = {} -- [regionHash] = ped
@@ -51,7 +51,7 @@ local function addTargetToEntity(entity, opts)
         exports.ox_target:addLocalEntity(entity, {
             {
                 icon     = opts.icon or 'fa-solid fa-scale-balanced',
-                label    = opts.label or 'Interact',
+                label    = opts.label or locale('interact') or 'Interact',
                 distance = opts.distance or 2.0,
                 onSelect = onSelect,
             }
@@ -61,7 +61,7 @@ local function addTargetToEntity(entity, opts)
             options = {
                 {
                     icon   = opts.icon or 'fa-solid fa-scale-balanced',
-                    label  = opts.label or 'Interact',
+                    label  = opts.label or locale('interact') or 'Interact',
                     action = onSelect,
                 }
             },
@@ -85,7 +85,7 @@ local function addTargetForCoords(key, coords, opts)
             options = {
                 {
                     icon     = opts.icon or 'fa-solid fa-clipboard-list',
-                    label    = opts.label or 'Interact',
+                    label    = opts.label or locale('interact') or 'Interact',
                     distance = opts.distance or 2.0,
                     onSelect = onSelect,
                 }
@@ -101,7 +101,7 @@ local function addTargetForCoords(key, coords, opts)
             options = {
                 {
                     icon   = opts.icon or 'fa-solid fa-clipboard-list',
-                    label  = opts.label or 'Interact',
+                    label  = opts.label or locale('interact') or 'Interact',
                     action = onSelect,
                 }
             },
@@ -276,7 +276,7 @@ RegisterNetEvent('rsg-election:client:spawnCandidateEntities', function(regionHa
     -- Target PED -> registration UI (attach once)
     if not AttachedTargets[ped] then
         addTargetToEntity(ped, {
-            label    = cfg.targetLabel or 'Register as Candidate',
+            label    = cfg.targetLabel or locale('register_as_candidate') or 'Register as Candidate',
             icon     = cfg.targetIcon or 'fa-solid fa-id-card',
             distance = cfg.targetDistance or 2.0,
             onSelect = function()
@@ -322,7 +322,7 @@ RegisterNetEvent('rsg-election:client:spawnCandidateEntities', function(regionHa
     -- Target BOARD -> election UI (attach once)
     if not AttachedTargets[obj] then
         addTargetToEntity(obj, {
-            label    = 'Open Election Board',
+            label    = locale('open_election_board') or 'Open Election Board',
             icon     = 'fa-solid fa-clipboard-list',
             distance = 2.0,
             onSelect = function()
@@ -356,7 +356,7 @@ RegisterNetEvent('rsg-election:client:onCandidateEntitiesSpawned', function(regi
             -- Target PED -> registration UI
             if not AttachedTargets[ped] then
                 addTargetToEntity(ped, {
-                    label    = 'Register as Candidate',
+                    label    = locale('register_as_candidate') or 'Register as Candidate',
                     icon     = 'fa-solid fa-id-card',
                     distance = 2.0,
                     onSelect = function()
@@ -376,7 +376,7 @@ RegisterNetEvent('rsg-election:client:onCandidateEntitiesSpawned', function(regi
             -- Target BOARD -> election UI (view candidates / vote if voting phase)
             if not AttachedTargets[obj] then
                 addTargetToEntity(obj, {
-                    label    = 'Open Election Board',
+                    label    = locale('open_election_board') or 'Open Election Board',
                     icon     = 'fa-solid fa-clipboard-list',
                     distance = 2.0,
                     onSelect = function()
@@ -442,7 +442,7 @@ CreateThread(function()
                 radius   = 1.5,
                 distance = data.targetDistance or 2.0,
                 icon     = data.targetIcon or 'fa-solid fa-clipboard-list',
-                label    = data.targetLabel or 'Open Election Board',
+                label    = data.targetLabel or locale('open_election_board') or 'Open Election Board',
                 onSelect = function()
                     local result = lib.callback.await('rsg-election:getBulletinData', false, data.regionKey)
                     if not result then return end
@@ -457,14 +457,14 @@ CreateThread(function()
                         local votes = tonumber(w.total_votes or 0) or 0
 
                         lib.notify({
-                            title       = 'Elections',
+                            title       = locale('elections') or 'Elections',
                             description = ('Winner: %s\nVotes: %d'):format(fullName ~= '' and fullName or (w.citizenid or 'Unknown'), votes),
                             type        = 'success'
                         })
                     else
                         lib.notify({
-                            title       = 'Elections',
-                            description = 'No active voting or recent winner for this region.',
+                            title       = locale('elections') or 'Elections',
+                            description = locale('no_active_election') or 'No active voting or recent winner for this region.',
                             type        = 'inform'
                         })
                     end

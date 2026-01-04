@@ -6,6 +6,7 @@
 local RSGCore     = exports['rsg-core']:GetCoreObject()
 RSGElection       = RSGElection or {}
 RSGElection.Enums = RSGElection.Enums or {}
+lib.locale()
 
 local Notify    = RSGElection.Notify
 local Audit     = RSGElection.Audit
@@ -23,7 +24,7 @@ RegisterNetEvent("rsg-election:castVote", function(candidateId)
 
     candidateId = tonumber(candidateId)
     if not candidateId or candidateId <= 0 then
-        Notify(src, "Voting", "Invalid candidate.", "error")
+        Notify(src, locale("voting"), locale("invalid_candidate"), "error")
         return
     end
 
@@ -32,13 +33,13 @@ RegisterNetEvent("rsg-election:castVote", function(candidateId)
 
     local region_hash = GetRegion(src)
     if not region_hash then
-        Notify(src, "Voting", "Could not determine your region.", "error")
+        Notify(src, locale("voting"), locale("cannot_determine_region"), "error")
         return
     end
 
     local elec = GetActive(region_hash)
     if not elec or elec.phase ~= 'voting' then
-        Notify(src, "Voting", "Voting is not active.", "error")
+        Notify(src, locale("voting"), locale("voting_not_active"), "error")
         return
     end
 
@@ -51,12 +52,12 @@ RegisterNetEvent("rsg-election:castVote", function(candidateId)
     )
 
     if not residency then
-        Notify(src, "Voting", "You must be a registered resident to vote.", "error")
+        Notify(src, locale("voting"), locale("must_be_resident_vote"), "error")
         return
     end
 
     if residency.region_hash ~= region_hash then
-        Notify(src, "Voting", "You can only vote in your home region.", "error")
+        Notify(src, locale("voting"), locale("must_be_resident_region"), "error")
         return
     end
 
@@ -67,7 +68,7 @@ RegisterNetEvent("rsg-election:castVote", function(candidateId)
     ]], { candidateId, elec.id })
 
     if not cand then
-        Notify(src, "Voting", "Invalid candidate.", "error")
+        Notify(src, locale("voting"), locale("invalid_candidate"), "error")
         return
     end
 
@@ -78,7 +79,7 @@ RegisterNetEvent("rsg-election:castVote", function(candidateId)
     ]], { elec.id, citizenid })
 
     if already then
-        Notify(src, "Voting", "You already voted.", "error")
+        Notify(src, locale("voting"), locale("already_voted"), "error")
         return
     end
 
@@ -92,7 +93,7 @@ RegisterNetEvent("rsg-election:castVote", function(candidateId)
         ("Voted for candidate %d in election %d"):format(candidateId, elec.id)
     )
 
-    Notify(src, "Voting", "Your vote has been cast.", "success")
+    Notify(src, locale("voting"), locale("vote_cast"), "success")
 
     -- Let the client know so it can close UI / show confirmation
     TriggerClientEvent("rsg-election:voted", src)

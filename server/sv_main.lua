@@ -6,7 +6,7 @@
 local RSGCore       = exports['rsg-core']:GetCoreObject()
 RSGElection         = RSGElection or {}
 RSGElection.Enums   = RSGElection.Enums or {}
-
+lib.locale()
 local Notify         = RSGElection.Notify
 local GetRegion      = RSGElection.GetPlayerRegionHash
 local GetActive      = RSGElection.GetActiveElectionByRegion
@@ -326,7 +326,7 @@ RegisterNetEvent("rsg-election:requestElectionData", function()
     local elec = getActiveElectionByRegion(region_hash)
     if not elec then
         TriggerClientEvent("rsg-election:sendElectionData", src, {
-            regionTitle = "No active election",
+            regionTitle = locale('no_active_election') or "No active election",
             phase       = PHASE_LABELS.idle,
             hasVoted    = false,
             candidates  = {}
@@ -366,7 +366,7 @@ RegisterNetEvent("rsg-election:requestElectionData", function()
         }
     end
 
-    local title = ("ELECTIONS — %s"):format(string.upper(elec.region_alias))
+    local title = (locale('elections') or "ELECTIONS") .. " — " .. string.upper(elec.region_alias)
 
     TriggerClientEvent("rsg-election:sendElectionData", src, {
         regionTitle = title,
@@ -387,12 +387,12 @@ end)
 lib.callback.register('rsg-election:canOpenElection', function(src)
     local region_hash = GetRegion(src)
     if not region_hash then
-        return false, "Unable to determine your region."
+        return false, locale('cannot_determine_region') or "Unable to determine your region."
     end
 
     local elec = GetActive(region_hash)
     if not elec or elec.phase == 'idle' or elec.phase == 'complete' then
-        return false, "No active election in this region."
+        return false, locale('no_active_election') or "No active election in this region."
     end
 
     return true, PHASE_LABELS[elec.phase] or elec.phase, elec.region_alias
@@ -402,9 +402,9 @@ end)
 -- ADMIN: /electionmenu
 ------------------------------------------------
 
-RSGCore.Commands.Add('electionmenu', 'Open election admin menu', {}, false, function(source, _)
+RSGCore.Commands.Add('electionmenu', locale('election_admin_menu_open') or 'Open election admin menu', {}, false, function(source, _)
     if not IsOwner(source) then
-        Notify(source, "Elections", "Only the server owner can open the election menu.", "error")
+        Notify(source, locale('elections') or "Elections", locale('only_owner_open_election_menu') or "Only the server owner can open the election menu.", "error")
         return
     end
 
@@ -426,13 +426,13 @@ RegisterNetEvent('rsg-election:adminCreateElection', function(regionAlias, regis
     registrationFee = tonumber(registrationFee) or 0
 
     if regionAlias == '' then
-        Notify(src, "Elections", "Region is required.", "error")
+        Notify(src, locale('elections') or "Elections", locale('region_required') or "Region is required.", "error")
         return
     end
 
     local region_hash = GetRegion(src)
     if not region_hash then
-        Notify(src, "Elections", "Could not determine your current region hash.", "error")
+        Notify(src, locale('elections') or "Elections", locale('cannot_determine_region') or "Could not determine your current region hash.", "error")
         return
     end
 
@@ -454,7 +454,7 @@ RegisterNetEvent('rsg-election:adminCreateElection', function(regionAlias, regis
 
     if not insertId then
         RSGElection.Log('adminCreateElection failed: %s', tostring(err))
-        Notify(src, "Elections", "Database error creating election.", "error")
+        Notify(src, locale('elections') or "Elections", locale('database_error') or "Database error creating election.", "error")
         return
     end
 
@@ -464,8 +464,8 @@ RegisterNetEvent('rsg-election:adminCreateElection', function(regionAlias, regis
         )
     )
 
-    Notify(src, "Elections",
-        ("Election #%d created for region %s. Phase: Idle."):format(
+    Notify(src, locale('elections') or "Elections",
+        (locale('election_created_success') or "Election #%d created for region %s. Phase: Idle."):format(
             insertId, regionAlias
         ),
         "success"
@@ -481,7 +481,7 @@ end)
 
 lib.callback.register('rsg-election:getAdminElectionList', function(src)
     if not IsOwner(src) then
-        return { ok = false, error = "No permission." }
+        return { ok = false, error = locale("no_permission") or "No permission." }
     end
 
     local rows, err = DbQuery([[
@@ -508,13 +508,8 @@ lib.callback.register('rsg-election:getAdminElectionList', function(src)
     end
 
     local monthNames = {
-        "January","February","March","April","May","June",
-        "July","August","September","October","November","December"
-    }
-
-        local monthNames = {
-        "January","February","March","April","May","June",
-        "July","August","September","October","November","December"
+       locale("January"),locale("February"),locale("March"),locale("April"),locale("May"),locale("June"),
+        locale("July"),locale("August"),locale("September"),locale("October"),locale("November"),locale("December")
     }
 
     local function fmtPretty(val)
@@ -569,17 +564,17 @@ end)
 
 lib.callback.register('rsg-election:getElectionAdminDetail', function(src, electionId)
     if not IsOwner(src) then
-        return { ok = false, error = "No permission." }
+        return { ok = false, error = locale("no_permission") or "No permission." }
     end
 
     electionId = tonumber(electionId)
     if not electionId then
-        return { ok = false, error = "Invalid election id." }
+        return { ok = false, error = locale("invalid_election_id") or "Invalid election id." }
     end
 
     local elec = RSGElection.GetElectionById(electionId)
     if not elec then
-        return { ok = false, error = "Election not found." }
+        return { ok = false, error = locale("election_not_found") or "Election not found." }
     end
 
     local tally, err = RSGElection.GetElectionTally(electionId)
@@ -589,18 +584,13 @@ lib.callback.register('rsg-election:getElectionAdminDetail', function(src, elect
 
     -- Pretty-print DB dates like "November 22, 1898"
     local monthNames = {
-        "January","February","March","April","May","June",
-        "July","August","September","October","November","December"
-    }
-
-        local monthNames = {
-        "January","February","March","April","May","June",
-        "July","August","September","October","November","December"
+        locale("January"),locale("February"),locale("March"),locale("April"),locale("May"),locale("June"),
+        locale("July"),locale("August"),locale("September"),locale("October"),locale("November"),locale("December")
     }
 
     local function fmtPretty(val)
         if not val or val == 0 or val == "0" then
-            return "N/A"
+            return locale("not_available") or "N/A"
         end
 
         local num = tonumber(val)
@@ -661,7 +651,7 @@ local function BroadcastToRegionResidents(region_hash, message, msgType)
     for _, row in ipairs(rows) do
         local target = RSGCore.Functions.GetPlayerByCitizenId(row.citizenid)
         if target then
-            Notify(target.PlayerData.source, "Elections", message, msgType)
+            Notify(target.PlayerData.source, locale("elections") or "Elections", message, msgType)
         end
     end
 end
@@ -677,7 +667,7 @@ end
 if not RSGElection.FinalizeElectionForRegion then
     function RSGElection.FinalizeElectionForRegion(source, region_hash, igDateStr)
         if not region_hash then
-            Notify(source, "Elections", "Could not determine region hash for finalizing.", "error")
+            Notify(source, locale("elections") or "Elections", locale("could_not_determine_region_hash") or "Could not determine region hash for finalizing.", "error")
             return false, "no_region"
         end
 
@@ -686,7 +676,7 @@ if not RSGElection.FinalizeElectionForRegion then
         -- Get active election in this region
         local elec = GetActive(region_hash)
         if not elec then
-            Notify(source, "Elections", "No active election in this region.", "error")
+            Notify(source, locale("elections") or "Elections", locale("no_active_election") or "No active election in this region.", "error")
             return false, "no_election"
         end
 
@@ -703,12 +693,12 @@ if not RSGElection.FinalizeElectionForRegion then
             if RSGElection.Log then
                 RSGElection.Log('Error tallying votes for election %d: %s', elec.id, tostring(err))
             end
-            Notify(source, "Elections", "Database error tallying votes.", "error")
+            Notify(source, locale("elections") or "Elections", locale("database_error_tallying_votes") or "Database error tallying votes.", "error")
             return false, "db_error"
         end
 
         if not rows or not rows[1] then
-            Notify(source, "Elections", "No votes cast. No winner.", "error")
+            Notify(source, locale("elections") or "Elections", locale("no_votes_cast_no_winner") or "No votes cast. No winner.", "error")
             return false, "no_votes"
         end
 
@@ -754,7 +744,7 @@ if not RSGElection.FinalizeElectionForRegion then
         end
 
         if not winner then
-            Notify(source, "Elections", "Winner record missing, cannot install governor.", "error")
+            Notify(source, locale("elections") or "Elections", locale("winner_record_missing") or "Winner record missing, cannot install governor.", "error")
             return false, "no_winner_record"
         end
 
@@ -769,14 +759,14 @@ if not RSGElection.FinalizeElectionForRegion then
         if ok then
             -- We consider any non-error call as success.
             -- (InstallGovernor may not return a value at all.)
-            Notify(source, "Governorship",
-                ("New Governor installed: %s (%s votes)."):format(winner.character_name, winnerVotes),
+            Notify(source, locale("governorship") or "Governorship",
+                (locale("new_governor_installed") or "New Governor installed: %s (%s votes)."):format(winner.character_name, winnerVotes),
                 "success"
             )
 
             TriggerClientEvent('ox_lib:notify', -1, {
-                title       = "Elections",
-                description = ("New Governor of %s: %s"):format(
+                title       = locale("elections") or "Elections",
+                description = (locale("new_governor_of") or "New Governor of %s: %s"):format(
                     string.upper(elec.region_alias or "UNKNOWN"), winner.character_name
                 ),
                 type        = "success",
@@ -795,8 +785,8 @@ if not RSGElection.FinalizeElectionForRegion then
                 )
             end
 
-            Notify(source, "Governorship",
-                "Failed to automatically install governor. Check rsg-governor / winner online state.",
+            Notify(source, locale("governorship") or "Governorship",
+                locale("failed_to_install_governor") or "Failed to automatically install governor. Check rsg-governor / winner online state.",
                 "error"
             )
             return false, "install_failed"
@@ -828,20 +818,20 @@ RegisterNetEvent('rsg-election:adminSetPhase', function(electionId, newPhase, du
         complete     = true,  -- Result
     }
     if not allowed[newPhase] then
-        Notify(src, "Elections", "Invalid phase.", "error")
+        Notify(src, locale("elections") or "Elections", locale("invalid_phase") or "Invalid phase.", "error")
         return
     end
 
     local elec = RSGElection.GetElectionById(electionId)
     if not elec then
-        Notify(src, "Elections", "Election not found.", "error")
+        Notify(src, locale("elections") or "Elections", locale("election_not_found") or "Election not found.", "error")
         return
     end
 
     -- Already in this phase?
     if (elec.phase or ''):lower() == newPhase then
         local label = PHASE_LABELS[newPhase] or newPhase
-        Notify(src, "Elections", (label .. " phase is already initiated."), "inform")
+        Notify(src, locale("elections") or "Elections", (locale("phase_already_initiated") or "%s phase is already initiated."):format(label), "inform")
         return
     end
 
@@ -863,7 +853,7 @@ RegisterNetEvent('rsg-election:adminSetPhase', function(electionId, newPhase, du
             { ts, electionId }
         )
         if err then
-            Notify(src, "Elections", "Failed to set phase to Registration.", "error")
+            Notify(src, locale("elections") or "Elections", locale("failed_to_set_phase_registration") or "Failed to set phase to Registration.", "error")
             return
         end
 
@@ -884,7 +874,7 @@ RegisterNetEvent('rsg-election:adminSetPhase', function(electionId, newPhase, du
             { ts, electionId }
         )
         if err then
-            Notify(src, "Elections", "Failed to set phase to Campaign.", "error")
+            Notify(src, locale("elections") or "Elections", locale("failed_to_set_phase_campaign") or "Failed to set phase to Campaign.", "error")
             return
         end
 
@@ -901,7 +891,7 @@ RegisterNetEvent('rsg-election:adminSetPhase', function(electionId, newPhase, du
             { ts, electionId }
         )
         if err then
-            Notify(src, "Elections", "Failed to set phase to Voting.", "error")
+            Notify(src, locale("elections") or "Elections", locale("failed_to_set_phase_voting") or "Failed to set phase to Voting.", "error")
             return
         end
 
@@ -930,8 +920,8 @@ RegisterNetEvent('rsg-election:adminSetPhase', function(electionId, newPhase, du
     end
 
     local label = PHASE_LABELS[newPhase] or newPhase
-    Notify(src, "Elections",
-        ("Election #%d phase set to %s."):format(electionId, label),
+    Notify(src, locale("elections") or "Elections",
+        (locale("election_phase_set") or "Election #%d phase set to %s."):format(electionId, label),
         "success"
     )
 
@@ -943,8 +933,8 @@ RegisterNetEvent('rsg-election:adminSetPhase', function(electionId, newPhase, du
         local prettyDate = "today"
         if igDateStr ~= '' then
             local months = {
-                "January","February","March","April","May","June",
-                "July","August","September","October","November","December"
+                locale("January") or "January",locale("February") or "February",locale("March") or "March",locale("April") or "April",locale("May") or "May",locale("June") or "June",
+                locale("July") or "July",locale("August") or "August",locale("September") or "September",locale("October") or "October",locale("November") or "November",locale("December") or "December"
             }
             local y, m, d = igDateStr:match("^(%d+)%-(%d+)%-(%d+)")
             if y and m and d then
@@ -958,13 +948,13 @@ RegisterNetEvent('rsg-election:adminSetPhase', function(electionId, newPhase, du
         local msg
 
         if newPhase == 'registration' then
-            msg = ("Registration for the governor election in %s has begun on %s. You may now apply as a candidate."):format(regionName, prettyDate)
+            msg = (locale("registration_begun") or "Registration for the governor election in %s has begun on %s. You may now apply as a candidate."):format(regionName, prettyDate)
         elseif newPhase == 'campaign' then
-            msg = ("Campaign period for the governor election in %s has begun on %s. Support your preferred candidates."):format(regionName, prettyDate)
+            msg = (locale("campaign_begun") or "Campaign period for the governor election in %s has begun on %s. Support your preferred candidates."):format(regionName, prettyDate)
         elseif newPhase == 'voting' then
-            msg = ("Voting has opened for the governor election in %s on %s. Residents may now cast their votes."):format(regionName, prettyDate)
+            msg = (locale("voting_opened") or "Voting has opened for the governor election in %s on %s. Residents may now cast their votes."):format(regionName, prettyDate)
         elseif newPhase == 'complete' then
-            msg = ("The governor election in %s has concluded on %s. Results are now available."):format(regionName, prettyDate)
+            msg = (locale("election_concluded") or "The governor election in %s has concluded on %s. Results are now available."):format(regionName, prettyDate)
         end
 
         if msg then
@@ -1041,10 +1031,8 @@ RegisterNetEvent('rsg-election:adminSetPhase', function(electionId, newPhase, du
 
                 local nextLabel = PHASE_LABELS[nextPhase] or nextPhase
                 TriggerClientEvent('ox_lib:notify', -1, {
-                    title       = "Elections",
-                    description = ("Election #%d automatically advanced to %s."):format(
-                        electionId, nextLabel
-                    ),
+                    title       = locale("elections"),
+                    description = locale("election_auto_advanced", electionId, nextLabel),
                     type        = "inform",
                     duration    = 8000
                 })
@@ -1068,18 +1056,18 @@ RegisterNetEvent('rsg-election:adminApplyResult', function(electionId)
 
     local elec = RSGElection.GetElectionById(electionId)
     if not elec then
-        Notify(src, "Elections", "Election not found.", "error")
+        Notify(src, locale("elections") or "Elections", locale("election_not_found") or "Election not found.", "error")
         return
     end
 
     if elec.phase ~= 'complete' then
-        Notify(src, "Elections", "Set phase to Result before applying result.", "error")
+        Notify(src, locale("elections") or "Elections", locale("set_phase_result_before_applying") or "Set phase to Result before applying result.", "error")
         return
     end
 
     local winner, tally, err = RSGElection.GetElectionWinner(electionId)
     if not winner then
-        Notify(src, "Elections", err or "No winner could be determined.", "error")
+        Notify(src, locale("elections"), err or locale("no_winner_determined"), "error")
         return
     end
 
@@ -1093,16 +1081,14 @@ RegisterNetEvent('rsg-election:adminApplyResult', function(electionId)
 
     if ok then
         -- Treat any non-error as success (InstallGovernor may not return anything)
-        Notify(src, "Governorship",
-            ("New Governor installed: %s (%d votes)."):format(winner.character_name, winner.votes or 0),
+        Notify(src, locale("governorship"),
+            locale("new_governor_installed", winner.character_name, winner.votes or 0),
             "success"
         )
 
         TriggerClientEvent('ox_lib:notify', -1, {
-            title       = "Elections",
-            description = ("New Governor of %s: %s"):format(
-                string.upper(elec.region_alias or "UNKNOWN"), winner.character_name
-            ),
+            title       = locale("elections"),
+            description = locale("new_governor_of", string.upper(elec.region_alias or locale("unknown")), winner.character_name),
             type        = "success",
             duration    = 8000
         })
@@ -1125,8 +1111,8 @@ RegisterNetEvent('rsg-election:adminApplyResult', function(electionId)
             ))
         end
 
-        Notify(src, "Governorship",
-            "Failed to install governor. Check rsg-governor or the winner's online state.",
+        Notify(src, locale("governorship"),
+            locale("failed_to_install_governor"),
             "error"
         )
     end
