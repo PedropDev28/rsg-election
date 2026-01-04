@@ -27,10 +27,6 @@ files {
     'html/assets/*.ttf'
 }
 
-ox_lib {
-    'locale'
-}
-
 server_scripts {
     '@oxmysql/lib/MySQL.lua',
     'server/sv_helpers.lua',     -- defines RSGElection + helpers first
